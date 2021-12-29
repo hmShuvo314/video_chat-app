@@ -1,48 +1,30 @@
-import { AppBar, makeStyles, Typography } from "@material-ui/core";
-import Notifications from "./Components/Notification";
-import Sidebar from "./Components/Options";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+
 import VideoPlayer from "./Components/VideoPlayer";
-// import { Typography } from "@material-ui/core";
+import { v4 as uuidV4 } from "uuid";
+import Home from "./Components/Home";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
 
-const useStyles = makeStyles((theme) => ({
-  appBar: {
-    borderRadius: 15,
-    margin: "30px 100px",
-    display: "flex",
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    width: "600px",
-    border: "2px solid black",
-
-    [theme.breakpoints.down("xs")]: {
-      width: "90%",
-    },
-  },
-  image: {
-    marginLeft: "15px",
-  },
-  wrapper: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    width: "100%",
-  },
-}));
 function App() {
-  const classes = useStyles();
+  const [socket, setSocket] = useState(null);
+
+  useEffect(() => {
+    const s = io("https://video-chat-app-shuvo.herokuapp.com");
+    setSocket(s);
+  }, []);
   return (
-    <div className={classes.wrapper}>
-      <AppBar className={classes.appBar} position="static" color="inherit">
-        <Typography variant="h2" align="center">
-          Chatty
-        </Typography>
-      </AppBar>
-      <VideoPlayer />
-      <Sidebar>
-        <Notifications />
-      </Sidebar>
-    </div>
+    <Router>
+      <Routes>
+        <Route exact path="/" element={<Home socket={socket} />} />
+        <Route path="/:roomId" element={<VideoPlayer socket={socket} />} />
+      </Routes>
+    </Router>
   );
 }
 

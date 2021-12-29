@@ -14,22 +14,23 @@ app.use(cors());
 const PORT = process.env.PORT || 5000;
 
 app.get("/", (req, res) => {
-  res.send("Running");
+  res.send("Working");
 });
 
+const rooms = [];
+
 io.on("connection", (socket) => {
-  socket.emit("me", socket.id);
-
-  socket.on("disconnect", () => {
-    socket.broadcast.emit("callEnded");
+  socket.on("create-new_room", ({ roomName, newRoomId }) => {
+    rooms.push([newRoomId, roomName]);
+    socket.broadcast.emit("add-new_rooms", [newRoomId, roomName]);
+  });
+  socket.on("get-rooms_list", () => {
+    socket.emit("receive-rooms_list", rooms);
   });
 
-  socket.on("calluser", ({ userToCall, signalData, from, name }) => {
-    io.to(userToCall).emit("calluser", { signal: signalData, from, name });
-  });
-
-  socket.on("answercall", (data) => {
-    io.to(data.to).emit("callaccepted", data.signal);
+  socket.on("join-room", ({ roomId, myId: userId }) => {
+    socket.join(roomId);
+    socket.broadcast.to(roomId).emit("user-connected", userId);
   });
 });
 
